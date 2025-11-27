@@ -4,7 +4,7 @@
 
 const CONFIG = {
     gridSize: 4,
-    shapes: ['circle', 'triangle', 'square', 'cross', 'star', 'diamond', 'hexagon'],
+    shapes: ['circle', 'triangle', 'square', 'cross', 'star', 'diamond', 'hexagon', 'pentagon', 'heart', 'octagon'],
     totalLevels: 100,
     pointsPerCorrect: 10,
     pointsPerWrong: -5
@@ -18,7 +18,8 @@ let gameState = {
     startTime: null,
     timerInterval: null,
     currentPuzzle: null,
-    isProcessing: false
+    isProcessing: false,
+    isPaused: false
 };
 
 // ===========================
@@ -78,13 +79,13 @@ function createPuzzle(level) {
     let gridSize, numHints;
     if (level <= 30) {
         gridSize = 4;
-        numHints = 5; // 5 hints for easier levels
+        numHints = 8; // 8 hints for easier levels (more hints)
     } else if (level <= 70) {
         gridSize = 5;
-        numHints = 6; // 6 hints for medium levels
+        numHints = 10; // 10 hints for medium levels
     } else {
         gridSize = 4;
-        numHints = 5; // Back to 4x4 with 5 hints for hard levels
+        numHints = 8; // Back to 4x4 with 8 hints for hard levels
     }
 
     // Generate complete solution
@@ -215,7 +216,10 @@ function createShapeSVG(shape) {
         cross: '<svg class="shape cross" viewBox="0 0 100 100"><path d="M35,20 L65,20 L65,35 L80,35 L80,65 L65,65 L65,80 L35,80 L35,65 L20,65 L20,35 L35,35 Z" /></svg>',
         star: '<svg class="shape star" viewBox="0 0 100 100"><polygon points="50,15 61,40 88,40 67,57 75,82 50,65 25,82 33,57 12,40 39,40" /></svg>',
         diamond: '<svg class="shape diamond" viewBox="0 0 100 100"><polygon points="50,15 85,50 50,85 15,50" /></svg>',
-        hexagon: '<svg class="shape hexagon" viewBox="0 0 100 100"><polygon points="50,15 80,30 80,70 50,85 20,70 20,30" /></svg>'
+        hexagon: '<svg class="shape hexagon" viewBox="0 0 100 100"><polygon points="50,15 80,30 80,70 50,85 20,70 20,30" /></svg>',
+        pentagon: '<svg class="shape pentagon" viewBox="0 0 100 100"><polygon points="50,15 85,40 70,80 30,80 15,40" /></svg>',
+        heart: '<svg class="shape heart" viewBox="0 0 100 100"><path d="M50,85 C50,85 15,60 15,40 C15,25 25,15 35,15 C42,15 47,20 50,25 C53,20 58,15 65,15 C75,15 85,25 85,40 C85,60 50,85 50,85 Z" /></svg>',
+        octagon: '<svg class="shape octagon" viewBox="0 0 100 100"><polygon points="35,15 65,15 85,35 85,65 65,85 35,85 15,65 15,35" /></svg>'
     };
     return svgMap[shape] || '';
 }
@@ -341,16 +345,18 @@ function startTimer() {
         clearInterval(gameState.timerInterval);
     }
 
-    let timeLeft = 30;
+    let timeLeft = 15;
     const timerDisplay = document.getElementById('timer-display');
     timerDisplay.textContent = `0:${timeLeft.toString().padStart(2, '0')}`;
-    timerDisplay.style.color = 'var(--text-primary)'; // Reset color
+    timerDisplay.style.color = '#333'; // Reset color
 
     gameState.timerInterval = setInterval(() => {
+        if (gameState.isPaused) return; // Skip timer tick if paused
+        
         timeLeft--;
 
         if (timeLeft <= 5) {
-            timerDisplay.style.color = 'var(--accent-error)'; // Warn when low
+            timerDisplay.style.color = '#d9534f'; // Warn when low
         }
 
         timerDisplay.textContent = `0:${timeLeft.toString().padStart(2, '0')}`;
@@ -392,6 +398,47 @@ function hideVictory() {
     document.getElementById('victory-modal').classList.remove('active');
 }
 
+function togglePause() {
+    gameState.isPaused = !gameState.isPaused;
+    
+    const pauseBtn = document.getElementById('pause-btn');
+    const pauseIcon = pauseBtn.querySelector('.pause-icon');
+    const playIcon = pauseBtn.querySelector('.play-icon');
+    const pauseModal = document.getElementById('pause-modal');
+    
+    if (gameState.isPaused) {
+        // Show pause modal
+        document.getElementById('pause-level').textContent = gameState.level;
+        document.getElementById('pause-score').textContent = Math.max(0, gameState.score);
+        pauseModal.classList.add('active');
+        
+        // Switch to play icon
+        pauseIcon.classList.add('hidden');
+        playIcon.classList.remove('hidden');
+        
+        // Disable answer tiles
+        document.querySelectorAll('.answer-tile').forEach(tile => {
+            tile.style.pointerEvents = 'none';
+            tile.style.opacity = '0.5';
+        });
+    } else {
+        // Hide pause modal
+        pauseModal.classList.remove('active');
+        
+        // Switch to pause icon
+        pauseIcon.classList.remove('hidden');
+        playIcon.classList.add('hidden');
+        
+        // Enable answer tiles
+        if (!gameState.isProcessing) {
+            document.querySelectorAll('.answer-tile').forEach(tile => {
+                tile.style.pointerEvents = 'auto';
+                tile.style.opacity = '1';
+            });
+        }
+    }
+}
+
 // ===========================
 // EVENT LISTENERS
 // ===========================
@@ -408,6 +455,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Pause button
+    document.getElementById('pause-btn').addEventListener('click', () => {
+        if (!gameState.isProcessing) {
+            togglePause();
+        }
+    });
+
+    // Resume button
+    document.getElementById('resume-btn').addEventListener('click', () => {
+        togglePause();
+    });
+
     // Modal click outside to close
     document.getElementById('victory-modal').addEventListener('click', (e) => {
         if (e.target.id === 'victory-modal') {
@@ -415,11 +474,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Keyboard shortcuts (1-5 for answer selection)
+    // Pause modal click outside to close
+    document.getElementById('pause-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'pause-modal') {
+            togglePause();
+        }
+    });
+
+    // Keyboard shortcuts (1-4 for answer selection, Space for pause)
     document.addEventListener('keydown', (e) => {
         if (gameState.isProcessing) return;
 
-        if (e.key >= '1' && e.key <= '5') {
+        if (e.key === ' ' || e.key === 'Escape') {
+            e.preventDefault();
+            togglePause();
+        } else if (!gameState.isPaused && e.key >= '1' && e.key <= '4') {
             const index = parseInt(e.key) - 1;
             const answerTiles = document.querySelectorAll('.answer-tile');
             if (answerTiles[index]) {
@@ -429,4 +498,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
