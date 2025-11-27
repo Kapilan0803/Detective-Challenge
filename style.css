@@ -14,11 +14,17 @@
     --bg-tile: #ffffff;
     --bg-tile-hover: #f8f8f8;
 
+    /* Text Colors */
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+
     /* Accent Colors */
     --accent-primary: #4a90e2;
     --accent-success: #5cb85c;
     --accent-error: #d9534f;
     --border-color: #d0d0d0;
+    --border-color-dark: #999999;
 
     /* Borders & Shadows */
     --border-radius: 8px;
@@ -123,6 +129,41 @@ body {
     font-weight: 700;
 }
 
+/* Pause Button */
+.pause-btn {
+    background: var(--accent-primary);
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.pause-btn:hover {
+    background: #3a7bc8;
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+}
+
+.pause-btn:active {
+    transform: scale(0.95);
+}
+
+.pause-icon,
+.play-icon {
+    display: block;
+}
+
+.pause-btn .hidden {
+    display: none;
+}
+
 /* ===========================
    GAME BOARD
    =========================== */
@@ -185,17 +226,48 @@ body {
 }
 
 .shape.circle {
-    fill: var(--color-circle);
+    fill: #FF6B6B;
 }
 
 .shape.triangle {
-    fill: var(--color-triangle);
+    fill: #4ECDC4;
 }
 
 .shape.square {
-    fill: var(--color-square);
+    fill: #FFE66D;
 }
 
+.shape.cross {
+    fill: #95E1D3;
+}
+
+.shape.star {
+    fill: #F38181;
+}
+
+.shape.diamond {
+    fill: #AA96DA;
+}
+
+.shape.hexagon {
+    fill: #FCBAD3;
+}
+
+.shape.pentagon {
+    fill: #A8D8EA;
+}
+
+.shape.heart {
+    fill: #FF8C94;
+}
+
+.shape.octagon {
+    fill: #C7CEEA;
+}
+
+/* ===========================
+   ANSWER OPTIONS
+   =========================== */
 .answer-options {
     display: flex;
     justify-content: center;
@@ -245,28 +317,21 @@ body {
 }
 
 @keyframes correctPulse {
-
-    0%,
-    100% {
+    0%, 100% {
         transform: scale(1);
     }
-
     50% {
         transform: scale(1.1);
     }
 }
 
 @keyframes shake {
-
-    0%,
-    100% {
+    0%, 100% {
         transform: translateX(0);
     }
-
     25% {
         transform: translateX(-8px);
     }
-
     75% {
         transform: translateX(8px);
     }
@@ -301,17 +366,14 @@ body {
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
     }
-
     15% {
         transform: translate(-50%, -50%) scale(1.05);
         opacity: 1;
     }
-
     85% {
         transform: translate(-50%, -50%) scale(1);
         opacity: 1;
     }
-
     100% {
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
@@ -365,7 +427,6 @@ body {
         opacity: 0;
         transform: translateY(-20px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -476,7 +537,6 @@ body {
 }
 
 @media (max-width: 480px) {
-
     .grid-tile,
     .answer-tile {
         width: 70px;
