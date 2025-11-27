@@ -341,7 +341,7 @@ function startTimer() {
         clearInterval(gameState.timerInterval);
     }
 
-    let timeLeft = 15;
+    let timeLeft = 30;
     const timerDisplay = document.getElementById('timer-display');
     timerDisplay.textContent = `0:${timeLeft.toString().padStart(2, '0')}`;
     timerDisplay.style.color = 'var(--text-primary)'; // Reset color
@@ -429,3 +429,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
